@@ -1,38 +1,41 @@
-let cacheData = "appV1";
+let cacheData = "pwaApp1";
 // step1 to install service worker to the browser
-this.addEventListener("install", (event) => {
-    event.waitUntil(
-        caches.open(cacheData).then((cache) => {
-            cache.addAll([
-                '/static/js/main.chunk.js',
-                '/static/js/0.chunk.js',
-                '/static/js/bundle.js',
-                '/static/css/main.chunk.css',
-                '/index.html',
-                '/',
-                "/users",
-                '/favicon.ico'
-            ])
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches.open(cacheData).then((cache) => {
+      cache.addAll([
+        "/static/js/main.chunk.js",
+        "/static/js/0.chunk.js",
+        "/static/js/bundle.js",
+        "/static/css/main.chunk.css",
+        "/index.html",
+        "/",
+        "/posts",
+        "/about",
+        "/contact",
+        "/favicon.ico",
+      ]);
+    })
+  );
+});
+
+self.addEventListener("fetch", (event) => {
+  if (!self.navigator.onLine) {
+    if (event.request.url === "http://localhost:3000/static/js/bundle.js") {
+      event.waitUntil(
+        this.registration.showNotification("Internet Issue dont worry", {
+          body: "Loading files from caches",
         })
-    )
-})
-this.addEventListener("fetch", (event) => {
-    if (!navigator.onLine) {
-        if (event.request.url === "http://localhost:3000/static/js/main.chunk.js") {
-            event.waitUntil(
-                this.registration.showNotification("Internet", {
-                    body: "internet not working",
-                })
-            )
-        }
-        event.respondWith(
-            caches.match(event.request).then((resp) => {
-                if (resp) {
-                    return resp
-                }
-                let requestUrl = event.request.clone();
-                fetch(requestUrl)
-            })
-        )
+      );
     }
-}) 
+    event.respondWith(
+      caches.match(event.request).then((resp) => {
+        if (resp) {
+          return resp;
+        }
+        let requestUrl = event.request.clone();
+        fetch(requestUrl);
+      })
+    );
+  }
+});
